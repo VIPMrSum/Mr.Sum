@@ -25,7 +25,7 @@ def align_most_replayed(file_name, random_id, youtube_id, duration):
     return np.array(aligned)
 
 def preprocess():
-    meta_data = "dataset/meta_data.csv"
+    meta_data = "dataset/metadata.csv"
     h5fd = h5py.File("dataset/mrsum.h5", 'a')
     df = pd.read_csv(meta_data)
     
