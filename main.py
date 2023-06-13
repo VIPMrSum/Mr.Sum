@@ -17,7 +17,7 @@ if __name__ == '__main__':
     parser.add_argument('--dropout_ratio', type = float, default = 0.5, help = 'the dropout ratio')
     parser.add_argument('--batch_size', type = int, default = 256, help = 'the batch size')
     parser.add_argument('--tag', type = str, default = 'dev', help = 'A tag for experiments')
-    parser.add_argument('--ckpt_path', type = str, default = '', help = 'checkpoint path for inference or weight initialization')
+    parser.add_argument('--ckpt_path', type = str, default = None, help = 'checkpoint path for inference or weight initialization')
     parser.add_argument('--train', type=str2bool, default='true', help='when use Train')
 
     opt = parser.parse_args()
@@ -29,7 +29,7 @@ if __name__ == '__main__':
     val_dataset = MrSumDataset(mode='val')
     test_dataset = MrSumDataset(mode='test')
 
-    train_loader = DataLoader(train_dataset, batch_size=opt.batch_size, shuffle=True, num_workers=4, collate_fn=BatchCollator())
+    train_loader = DataLoader(train_dataset, batch_size=config.batch_size, shuffle=True, num_workers=4, collate_fn=BatchCollator())
     val_loader = DataLoader(val_dataset, batch_size=1, shuffle=False, num_workers=4)
     test_loader = DataLoader(test_dataset, batch_size=1, shuffle=False, num_workers=4)
 
@@ -44,4 +44,9 @@ if __name__ == '__main__':
         solver.test(best_map50_ckpt_path)
         solver.test(best_map15_ckpt_path)
     else:
-        solver.test(test_model_ckpt_path)
+        test_model_ckpt_path = config.ckpt_path
+        if test_model_ckpt_path == None:
+            print("Trained model checkpoint requried. Exit program")
+            exit()
+        else:
+            solver.test(test_model_ckpt_path)

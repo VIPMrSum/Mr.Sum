@@ -29,7 +29,7 @@ Mr. Sum is a large-scale video summarization dataset, which contains 31,892 vide
 
 The four most viewed scenes in the "AC Sparta Praha" video ([Link](https://youtu.be/hqm6r8xeAew)) all show players scoring goals. 
 
-### Example 2: Best bicyle kick goals in Peru
+### Example 2: Best Bicyle Kick Goals in Peru
 
 <p align="center">
   <img src="images/mejores_most_replayed_with_numbers.png" width="50%">
@@ -51,7 +51,7 @@ The four most viewed scenes in the above video all show players scoring goals wi
 | --- | --- | --- |
 | ![gif1](images/the_matrix_1_gif.gif) | ![gif2](images/the_matrix_2_gif.gif) | ![gif3](images/the_matrix_3_gif.gif) |
 
-The first most viewed scene, noted as 1 in the video, as soon as Neo meets Agent Smith, he is immediately shot by the gun. The second most viewed scene, noted as 2, plenty of Agent Smiths shoots Neo and Neo reaches out his hand to block the bullets. Lastly, in the most viewed scene 3, Neo engages in combat with Agent Smith. ([Link](https://www.youtube.com/watch?v=H-0RHqDWcJE))
+In the first most viewed scene, noted as 1 in the video, as soon as Neo meets Agent Smith, he is immediately shot by a gun. The second most viewed scene, noted as 2, plenty of Agent Smiths shoots Neo and Neo reaches out his hand to block the bullets. Lastly, in the most viewed scene 3, Neo engages in combat with Agent Smith. ([Link](https://www.youtube.com/watch?v=H-0RHqDWcJE))
 
 ### Update
 - **2023.06.07**, Repository created.
@@ -60,54 +60,92 @@ The first most viewed scene, noted as 1 in the video, as soon as Neo meets Agent
 ----
 ## Getting Started
 
-1. Download [YouTube-8M](https://research.google.com/youtube8m/) dataset.
+1. Download the [YouTube-8M](https://research.google.com/youtube8m/) dataset.
 
-2. Download [mrsum.h5](https://drive.google.com/file/d/1LmasS9joHe2VqINO2ZXLFdAE5nPdngyO/view?usp=sharing) and [metadata.csv](https://drive.google.com/file/d/1GhUSEzPif5h2sUtHsSK9zn4qlEqeKcgY/view?usp=sharing) place it under `dataset` folder.
+2. Download [mrsum.h5](https://drive.google.com/file/d/1LmasS9joHe2VqINO2ZXLFdAE5nPdngyO/view?usp=sharing) and [metadata.csv](https://drive.google.com/file/d/1GhUSEzPif5h2sUtHsSK9zn4qlEqeKcgY/view?usp=sharing) and place it under the `dataset` folder.
 
-<!-- 3. Install software packages.
+3. Create a virtual environment and then run:
     ```
-    pip -r requirments.txt ??
+    pip install -r requirements.txt
     ```
-. Now you are ready! -->
 
 ----
 ## Complete Mr.Sum Dataset
 
 You need four fields on your `mrsum.h5` to prepare.
 
-1. `features`: Video frame features from YouTube-8M dataset.
-2. `gtscore`: Most replayed statistics normalized in 0 to 1 score.
+1. `features`: Video frame features from the YouTube-8M dataset.
+2. `gtscore`: The Most replayed statistics normalized to a score of 0 to 1.
 3. `change_points`: Shot boundary information obtained using the  [Kernel Temporal Segmentation](https://github.com/TatsuyaShirakawa/KTS) algorithm.
-4. `gtsummary`: Ground truth summary obtained by solving 0/1 knapsack algorithm on shots.
+4. `gtsummary`: Ground truth summary obtained by solving the 0/1 knapsack algorithm on shots.
 
 We provide three fields, `gtscore`, `change_points`, and `gtsummary`, inside `mrsum.h5`. 
 
-After downloading YouTube-8M dataset, you can add the `features` field using
+After downloading the YouTube-8M dataset, you can add the `features` field using
 ```
 python preprocess/preprocess.py
 ```
 
-Please read [DATASET.md](dataset/DATASET.md) for more details about the Mr.Sum.
+Please read [DATASET.md](dataset/DATASET.md) for more details about Mr.Sum.
 
 ----
-## Apply Mr.Sum on your summarization model
+## Baseline models on Mr.Sum
+
+We provide compatible code for three baselines models, [PGL-SUM](https://github.com/e-apostolidis/PGL-SUM), [VASNet](https://github.com/ok1zjf/VASNet), and [SL-module](https://github.com/ChrisAllenMing/Cross_Category_Video_Highlight).
+
+You can train baseline models on Mr.Sum from scratch using the following commands.
+
+- PGL-SUM
+  ```
+  python main.py --train True --model PGL_SUM --batch_size 324 --epochs 200 --tag train_scratch
+  ```
+
+- VASNet
+  ```
+  python main.py --train True --model VASNet --batch_size 324 --epochs 200 --tag train_scratch
+  ```
+
+- SL-module
+  ```
+  python main.py --train True --model SL_module --batch_size 324 --epochs 200 --tag train_scratch
+  ```
+
+Furthermore, we provide trained checkpoints of each model for reproducibility.
+- [Download PGL-SUM checkpoint](https://drive.google.com/file/d/1NQ4UT-0iOBA8-GFvpGDoAgpYV8k8p2OF/view?usp=sharing)
+- [Download VASNet checkpoint](https://drive.google.com/file/d/1gyv6ZuD5zvKWUbcmlKZcN720fnw8a69d/view?usp=sharing)
+- [Download SL-module checkpoint](https://drive.google.com/file/d/1oUXYWAspFhjKYcWP9aN1DPYO0EUT0eh3/view?usp=sharing)
+
+<!-- ** We will further release more checkpoints once the paper is accepted. -->
+
+Follow the command below to run inference on trained checkpoints.
+```
+python main.py --train False --model <model_type> --ckpt_path <checkpoint file path> --tag inference
+```
+For example, if you download the VASNet checkpoint and place it inside the `dataset` folder, you can use the command as follows.
+```
+python main.py --train False --model VASNet --ckpt_path dataset/vasnet_try1_152.tar.pth --tag vasnet_inference
+```
+
+## Train your summarization model on Mr.Sum
 
 We provide a sample code for training and evaluating summarization models on Mr.Sum.
 
-A summarization model developer can test their own model by implementing pytorch models under the `model/networks` folder.
+Summarization model developers can test their own model by implementing pytorch models under the `networks` folder.
 
-We provide the [`SimpleMLP`](model/networks/mlp.py) summarization model as an example.
+We provide the [`SimpleMLP`](networks/mlp.py) summarization model as a toy example.
 
-You can train your model on Mr.Sum dataset using the command below. Modify configurations with your taste!
+You can train your model on Mr.Sum dataset using the command below. Modify or add new configurations with your taste!
 ```
 python main.py --train True --batch_size 8 --epochs 50 --tag exp1
 ```
 
-We referred the code from [PGL-SUM](https://github.com/e-apostolidis/PGL-SUM).
-
 ----
 
-## License
-This dataset is licensed under [Creative Commons Attribution 4.0 International (CC BY 4.0) license](https://creativecommons.org/licenses/by/4.0/) following the YouTube-8M dataset. All the Mr.Sum dataset users must comply with [YouTube Terms of Service](https://www.youtube.com/static?template=terms) and [YouTube API Services Terms of Service](https://developers.google.com/youtube/terms/api-services-terms-of-service#agreement).
+## License of Assets
+This dataset is licensed under [Creative Commons Attribution 4.0 International (CC BY 4.0) license](https://creativecommons.org/licenses/by/4.0/) following the YouTube-8M dataset. All the Mr.Sum dataset users must comply with the [YouTube Terms of Service](https://www.youtube.com/static?template=terms) and [YouTube API Services Terms of Service](https://developers.google.com/youtube/terms/api-services-terms-of-service#agreement).
+
+
+This code referred to [PGL-SUM](https://github.com/e-apostolidis/PGL-SUM), [VASNet](https://github.com/ok1zjf/VASNet), and [SL-module](https://github.com/ChrisAllenMing/Cross_Category_Video_Highlight). Every part of the code from the original repository follows the corresponding license.
+Our license of the code can be found in [LICENSE](LICENSE).
 
 ----

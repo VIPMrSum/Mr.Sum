@@ -7,7 +7,11 @@ import os
 from tqdm import tqdm
 from sklearn.metrics import average_precision_score
 
-from model.networks.mlp import SimpleMLP
+from networks.mlp import SimpleMLP
+from networks.pgl_sum.pgl_sum import PGL_SUM
+from networks.vasnet.vasnet import VASNet
+from networks.sl_module.sl_module import SL_module
+
 from model.utils.evaluation_metrics import evaluate_summary
 from model.utils.generate_summary import generate_summary
 from model.utils.evaluate_map import generate_mrsum_seg_scores, top50_summary, top15_summary
@@ -33,6 +37,14 @@ class Solver(object):
         # Model creation
         if self.config.model == 'MLP':
             self.model = SimpleMLP(1024, [1024], 1)
+        elif self.config.model == 'PGL_SUM':
+            self.model = PGL_SUM(input_size=1024, output_size=1024, num_segments=4, heads=8, fusion="add", pos_enc="absolute")
+        elif self.config.model == 'VASNet':
+            self.model = VASNet(hidden_dim=1024)
+        elif self.config.model == 'SL_module':
+            self.model = SL_module(input_dim=1024, depth=5, heads=8, mlp_dim=3072, dropout_ratio=0.5)
+        else:
+            NotImplementedError
             
         self.model.to(self.config.device)
         
@@ -149,8 +161,9 @@ class Solver(object):
             picks = data['picks'][0].numpy()
             
             machine_summary = generate_summary(score, cps, n_frames, nfps, picks)
-            f_score = evaluate_summary(machine_summary, gt_summary, eval_method='avg')
-            
+            # print("MACHINE", machine_summary, machine_summary.shape)
+            # print("GT SUMMARY",gt_summary, gt_summary.shape)
+            f_score, kTau, sRho = evaluate_summary(machine_summary, gt_summary, eval_method='avg')
             fscore_history.append(f_score)
 
             # Highlight Detection Metric
