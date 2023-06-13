@@ -23,6 +23,8 @@ class SL_module(nn.Module):
         return score, 0.0
 
     def load_state_dict(self, state_dict, strict=True):
-
-        self.transformer.load_state_dict(state_dict['transformer'])
-        self.score_model.load_state_dict(state_dict['score_model'])
+        if 'transformer' in state_dict.keys(): 
+            self.transformer.load_state_dict(state_dict['transformer'])
+            self.score_model.load_state_dict(state_dict['score_model'])
+        else:
+            super(SL_module, self).load_state_dict(state_dict)

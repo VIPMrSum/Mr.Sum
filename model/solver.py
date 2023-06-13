@@ -19,9 +19,8 @@ from model.utils.evaluate_map import generate_mrsum_seg_scores, top50_summary, t
 
 class Solver(object):
     def __init__(self, config=None, train_loader=None, val_loader=None, test_loader=None):
-        """Class that Builds, Trains and Evaluates PGL-SUM model"""
-        # Initialize variables to None, to be safe
-        self.model, self.optimizer, self.writer = None, None, None
+        
+        self.model, self.optimizer, self.writer, self.scheduler = None, None, None, None
 
         self.config = config
         self.train_loader = train_loader
@@ -33,25 +32,37 @@ class Solver(object):
         self.criterion = nn.MSELoss(reduction='none').to(self.config.device)
 
     def build(self):
-        """ Function for constructing the PGL-SUM model of its key modules and parameters."""
+        """ Define your own summarization model here """
         # Model creation
         if self.config.model == 'MLP':
             self.model = SimpleMLP(1024, [1024], 1)
+            self.model.to(self.config.device)
+            self.optimizer = optim.Adam(self.model.parameters(), lr=self.config.lr, weight_decay=self.config.l2_reg)
+
         elif self.config.model == 'PGL_SUM':
             self.model = PGL_SUM(input_size=1024, output_size=1024, num_segments=4, heads=8, fusion="add", pos_enc="absolute")
+            self.model.to(self.config.device)
+            self.optimizer = optim.Adam(self.model.parameters(), lr=self.config.lr, weight_decay=self.config.l2_reg)
+            self.scheduler = optim.lr_scheduler.ExponentialLR(self.optimizer, gamma=0.97)
+
         elif self.config.model == 'VASNet':
             self.model = VASNet(hidden_dim=1024)
+            self.model.to(self.config.device)
+            self.optimizer = optim.Adam(self.model.parameters(), lr=self.config.lr, weight_decay=self.config.l2_reg)
+            self.scheduler = optim.lr_scheduler.ExponentialLR(self.optimizer, gamma=0.99)
+
         elif self.config.model == 'SL_module':
             self.model = SL_module(input_dim=1024, depth=5, heads=8, mlp_dim=3072, dropout_ratio=0.5)
+            self.model.to(self.config.device)
+            self.optimizer = optim.SGD(self.model.parameters(), lr=self.config.lr, momentum=0.9, weight_decay=self.config.l2_reg)
+            self.scheduler = optim.lr_scheduler.StepLR(self.optimizer, step_size=1, gamma=0.1)
+
         else:
-            NotImplementedError
+            print("Wrong model")
+            exit()
             
-        self.model.to(self.config.device)
-        
-        self.optimizer = optim.Adam(self.model.parameters(), lr=self.config.lr, weight_decay=self.config.l2_reg)
 
     def train(self):
-        """ Main function to train the PGL-SUM model. """
         best_f1score = -1.0
         best_map50 = -1.0
         best_map15 = -1.0
