@@ -5,7 +5,6 @@ import json
 import argparse
 
 def getMostReplayed(youtube_id):
-    most_replayed = {}
     url = f'https://www.youtube.com/watch?v={youtube_id}'
     response = requests.get(url).text
     soup = BeautifulSoup(response, 'html.parser')

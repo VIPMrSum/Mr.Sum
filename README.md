@@ -60,7 +60,7 @@ In the first most viewed scene, noted as 1 in the video, as soon as Neo meets Ag
 ----
 ## Getting Started
 
-1. Download the [YouTube-8M](https://research.google.com/youtube8m/) dataset.
+1. Download the [YouTube-8M](https://research.google.com/youtube8m/) dataset and place it under your dataset path. For example, when your dataset path is `/data/dataset/`, place your `yt8m` folder under the dataset path.
 
 2. Download [mrsum.h5](https://drive.google.com/file/d/1LmasS9joHe2VqINO2ZXLFdAE5nPdngyO/view?usp=sharing) and [metadata.csv](https://drive.google.com/file/d/1GhUSEzPif5h2sUtHsSK9zn4qlEqeKcgY/view?usp=sharing) and place it under the `dataset` folder.
 
@@ -83,7 +83,11 @@ We provide three fields, `gtscore`, `change_points`, and `gtsummary`, inside `mr
 
 After downloading the YouTube-8M dataset, you can add the `features` field using
 ```
-python preprocess/preprocess.py
+python preprocess/preprocess.py --dataset_path <your_dataset_path>/yt8m
+```
+For example, when your dataset path is `/data/dataset/`, follow the command below.
+```
+python preprocess/preprocess.py --dataset_path /data/dataset/yt8m
 ```
 
 Please read [DATASET.md](dataset/DATASET.md) for more details about Mr.Sum.

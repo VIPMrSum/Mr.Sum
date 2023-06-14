@@ -2,6 +2,7 @@ import os
 import json
 import math
 import h5py
+import argparse
 import numpy as np
 import pandas as pd
 
@@ -24,13 +25,13 @@ def align_most_replayed(file_name, random_id, youtube_id, duration):
     
     return np.array(aligned)
 
-def preprocess():
+def preprocess(dataset_path):
     meta_data = "dataset/metadata.csv"
     h5fd = h5py.File("dataset/mrsum.h5", 'a')
     df = pd.read_csv(meta_data)
     
     for row in tqdm(df.itertuples()):
-        feature, labels = read_tfrecord(row.yt8m_file, row.random_id)
+        feature, labels = read_tfrecord(dataset_path, row.yt8m_file, row.random_id)
         h5fd.create_dataset(f"{row.video_id}/features", data=feature)
         
         # mostreplayed = align_most_replayed(row.yt8m_file, row.random_id, row.youtube_id, row.duration)
@@ -39,4 +40,10 @@ def preprocess():
     h5fd.close()
 
 if __name__ == "__main__":
-    preprocess()
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--dataset_path", help='the path where yt8m dataset exists')
+    args = parser.parse_args()
+
+    dataset_path = args.dataset_path
+
+    preprocess(dataset_path)
