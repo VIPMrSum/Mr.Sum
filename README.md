@@ -64,9 +64,10 @@ In the first most viewed scene, noted as 1 in the video, as soon as Neo meets Ag
 
 2. Download [mrsum.h5](https://drive.google.com/file/d/1LmasS9joHe2VqINO2ZXLFdAE5nPdngyO/view?usp=sharing) and [metadata.csv](https://drive.google.com/file/d/1GhUSEzPif5h2sUtHsSK9zn4qlEqeKcgY/view?usp=sharing) and place it under the `dataset` folder.
 
-3. Create a virtual environment and then run:
+3. Create a virtual environment using the following command:
     ```
-    pip install -r requirements.txt
+    conda env create -f environment.yml
+    conda activate mrsum
     ```
 
 ----
@@ -101,17 +102,17 @@ You can train baseline models on Mr.Sum from scratch using the following command
 
 - PGL-SUM
   ```
-  python main.py --train True --model PGL_SUM --batch_size 324 --epochs 200 --tag train_scratch
+  python main.py --train True --model PGL_SUM --batch_size 256 --epochs 200 --tag train_scratch
   ```
 
 - VASNet
   ```
-  python main.py --train True --model VASNet --batch_size 324 --epochs 200 --tag train_scratch
+  python main.py --train True --model VASNet --batch_size 256 --epochs 200 --tag train_scratch
   ```
 
 - SL-module
   ```
-  python main.py --train True --model SL_module --batch_size 324 --epochs 200 --tag train_scratch
+  python main.py --train True --model SL_module --batch_size 256 --lr 0.05 --epochs 200 --tag train_scratch
   ```
 
 Furthermore, we provide trained checkpoints of each model for reproducibility.

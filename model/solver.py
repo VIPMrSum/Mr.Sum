@@ -44,24 +44,25 @@ class Solver(object):
             self.model.to(self.config.device)
             self.optimizer = optim.Adam(self.model.parameters(), lr=self.config.lr, weight_decay=self.config.l2_reg)
             self.scheduler = optim.lr_scheduler.ExponentialLR(self.optimizer, gamma=0.97)
+            self.init_weights(self.model, init_type='xavier')
 
         elif self.config.model == 'VASNet':
             self.model = VASNet(hidden_dim=1024)
             self.model.to(self.config.device)
             self.optimizer = optim.Adam(self.model.parameters(), lr=self.config.lr, weight_decay=self.config.l2_reg)
             self.scheduler = optim.lr_scheduler.ExponentialLR(self.optimizer, gamma=0.99)
+            self.init_weights(self.model, init_type='xavier')
 
         elif self.config.model == 'SL_module':
             self.model = SL_module(input_dim=1024, depth=5, heads=8, mlp_dim=3072, dropout_ratio=0.5)
             self.model.to(self.config.device)
             self.optimizer = optim.SGD(self.model.parameters(), lr=self.config.lr, momentum=0.9, weight_decay=self.config.l2_reg)
-            self.scheduler = optim.lr_scheduler.StepLR(self.optimizer, step_size=1, gamma=0.1)
+            self.scheduler = optim.lr_scheduler.StepLR(self.optimizer, step_size=100, gamma=0.1)
 
         else:
             print("Wrong model")
             exit()
-            
-
+    
     def train(self):
         best_f1score = -1.0
         best_map50 = -1.0
@@ -217,6 +218,29 @@ class Solver(object):
         f.write('Test MAP50   ' + str(test_map50) + '\n')
         f.write('Test MAP15   ' + str(test_map15) + '\n\n')
         f.flush()
+    
+    @staticmethod
+    def init_weights(net, init_type="xavier", init_gain=1.4142):
+        """ Initialize 'net' network weights, based on the chosen 'init_type' and 'init_gain'.
+
+        :param nn.Module net: Network to be initialized.
+        :param str init_type: Name of initialization method: normal | xavier | kaiming | orthogonal.
+        :param float init_gain: Scaling factor for normal.
+        """
+        for name, param in net.named_parameters():
+            if 'weight' in name and "norm" not in name:
+                if init_type == "normal":
+                    nn.init.normal_(param, mean=0.0, std=init_gain)
+                elif init_type == "xavier":
+                    nn.init.xavier_uniform_(param, gain=np.sqrt(2.0))  # ReLU activation function
+                elif init_type == "kaiming":
+                    nn.init.kaiming_uniform_(param, mode="fan_in", nonlinearity="relu")
+                elif init_type == "orthogonal":
+                    nn.init.orthogonal_(param, gain=np.sqrt(2.0))      # ReLU activation function
+                else:
+                    raise NotImplementedError(f"initialization method {init_type} is not implemented.")
+            elif 'bias' in name:
+                nn.init.constant_(param, 0.1)
 
 if __name__ == '__main__':
     pass
